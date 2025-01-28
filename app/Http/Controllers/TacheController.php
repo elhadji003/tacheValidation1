@@ -6,6 +6,7 @@ use App\Models\Tache;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\TaskReceivedNotification;
 
 class TacheController extends Controller
 {
@@ -41,6 +42,7 @@ class TacheController extends Controller
     /**
      * Enregistre une nouvelle tâche dans la base de données.
      */
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -58,10 +60,17 @@ class TacheController extends Controller
         $validated['user_id'] = auth()->id();
         $validated['is_complete'] = $request->boolean('is_complete');
 
-        Tache::create($validated);
+        $tache = Tache::create($validated);
+
+        // Envoyer une notification à l'utilisateur concerné
+        $recipient = User::find($request->input('recipient_id')); // Ajoutez un champ "recipient_id" dans votre formulaire
+        if ($recipient) {
+            $recipient->notify(new TaskReceivedNotification($tache));
+        }
 
         return to_route('taches.index')->with('success', 'Tâche créée avec succès.');
     }
+
 
     /**
      * Affiche les détails d'une tâche spécifique.

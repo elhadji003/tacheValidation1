@@ -1,8 +1,9 @@
 @extends('base')
-@section('title' . 'Home')
+@section('title', 'Home')
 
 @section('content')
     <div>
-        Home
+        Bienvenue
+        <a href="{{ route('app.loginForm') }}">Se connecter</a>
     </div>
 @endsection

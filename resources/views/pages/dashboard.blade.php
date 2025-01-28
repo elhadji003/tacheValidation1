@@ -20,7 +20,6 @@
                         <p class="text-gray-500 text-sm">Utilisateurs Totaux</p>
                         <h2 class="text-3xl font-bold text-gray-800">{{ $userCount }}</h2>
                     </div>
-
                     <div class="bg-blue-100 p-4 rounded-full">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-blue-500" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
@@ -43,7 +42,7 @@
                 </div>
                 <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">Nombre de tache créer</p>
+                        <p class="text-gray-500 text-sm">Nombre de tâches créées</p>
                         <h2 class="text-3xl font-bold text-gray-800">13</h2>
                     </div>
                     <div class="bg-yellow-100 p-4 rounded-full">
@@ -54,6 +53,33 @@
                         </svg>
                     </div>
                 </div>
+            </div>
+
+            <!-- Notifications Section -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h3 class="text-2xl font-semibold text-gray-800 mb-4">Notifications</h3>
+                @if (auth()->user()->notifications->count() > 0)
+                    <ul class="space-y-4">
+                        @foreach (auth()->user()->notifications as $notification)
+                            <li class="flex items-center justify-between">
+                                <p class="text-gray-700">{{ $notification->data['message'] }}</p>
+                                <div class="flex items-center space-x-4">
+                                    <a href="{{ route('taches.show', $notification->data['task_id']) }}"
+                                        class="text-sm text-blue-500">
+                                        Voir la tâche
+                                    </a>
+                                    <form method="POST" action="{{ route('notifications.read', $notification->id) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="text-sm text-gray-500">Marquer comme lu</button>
+                                    </form>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="text-gray-600">Aucune nouvelle notification.</p>
+                @endif
             </div>
 
             <!-- Recent Activity Section -->

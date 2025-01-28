@@ -37,7 +37,11 @@
                             </form>
                         @endcan
                     </td>
-                    <td class="px-4 py-2"><a href="{{ route('taches.share.form', $tache) }}">Partager</a></td>
+                    <td class="px-4 py-2">
+                        @if ($tache->user_id === auth()->id())
+                            <a href="{{ route('taches.share.form', $tache) }}">Partager</a>
+                        @endif
+                    </td>
                 </tr>
             @endforeach
         </tbody>

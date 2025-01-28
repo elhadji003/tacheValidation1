@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
+    protected $redirectTo = '/login';
+
     // All Users
     public function getUserData()
     {
@@ -31,8 +33,6 @@ class UserController extends Controller
         return view('pages.users', $data);
     }
 
-
-
     // Register User
     public function register(Request $request)
     {
@@ -40,7 +40,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'address' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|regex:/^[0-9]{10}$/',
             'password' => 'required|string|min:8|confirmed',
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
@@ -50,7 +50,7 @@ class UserController extends Controller
             $profileImagePath = $request->file('profile_image')->store('profile_images', 'public');
         }
 
-        $user = User::create([
+        User::create([
             'name' => $request->name,
             'email' => $request->email,
             'address' => $request->address,
@@ -75,7 +75,9 @@ class UserController extends Controller
             return redirect()->intended('dashboard')->with('success', 'Login successful!');
         }
 
-        return back()->withErrors(['email' => 'Invalid credentials'])->onlyInput('email');
+        return back()->withErrors([
+            'email' => 'Les identifiants fournis ne correspondent pas à nos enregistrements.',
+        ])->onlyInput('email');
     }
 
     // Update Profile
@@ -87,15 +89,14 @@ class UserController extends Controller
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $user->id,
             'address' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'nullable|string|max:20|regex:/^[0-9]{10}$/',
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         if ($request->hasFile('profile_image')) {
-            if ($user->profile_image) {
+            if ($user->profile_image && Storage::disk('public')->exists($user->profile_image)) {
                 Storage::disk('public')->delete($user->profile_image);
             }
-
             $user->profile_image = $request->file('profile_image')->store('profile_images', 'public');
         }
 
@@ -107,14 +108,15 @@ class UserController extends Controller
     // Logout User
     public function logout(Request $request): RedirectResponse
     {
-
-        $user = Auth::user();
         Auth::logout();
-
-        if (!$user) {
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-        }
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
         return redirect('login');
+    }
+
+    public function notifications()
+    {
+        $notifications = auth()->user()->notifications;
+        return view('notifications.index', compact('notifications'));
     }
 }
